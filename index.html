@@ -1,7 +1,40 @@
 <head>
-
+    <style></style>
+    <script src="./index.js"></script>
 </head>
 
 <body>
-    
+    <h1>Welcome to the Big O Notation calculator!</h1>
+    <p>Enter your code below and it will calculate its Big O notation!</p>
+
+    <div>
+        <label for="languageOption">Select Language: </label>
+        <select id="languageOption">
+            <option>Java</option>
+            <option>C</option>
+            <option>C++</option>
+            <option>Python</option>
+            <option>C#</option>
+            <option>Javascript</option>
+            <option>Swift</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="codeInput">Enter code:</label>
+    </div>
+    <div>
+        <textarea id="codeInput" rows=10 cols="80"></textarea>
+
+    </div>
+
+    <div>
+        <button>Get Big O!</button>
+    </div>
+
+
+    <div>
+        <p>Result:</p>
+        <span id="result"></span>
+    </div>
 </body>

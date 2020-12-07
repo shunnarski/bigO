@@ -1,0 +1,23 @@
+for(int i = 0; i < N; i++) {
+    for(int j = N.length - 1; j < N; i++) {
+        
+    }
+}
+
+
+Java parsing Notes:
+    1. It could use for(;;) notation or for(x : list) notation
+        1a. Or it could be while notation...lol. This will be such a bitch to look at.
+        
+    2. If the last column of the for(;;) notation is ++ or -- or += or -=, we have O(N)
+    3. If the last column of the for(;;) notation is /= or *=, we have O(logN)
+    4. If the first column is based on (N.length - a value) -> This is going to be a fixed value. So this is O(1)
+    5. Determining merge sort or quicksort algorithms wouldn't be very easy...might need to focus on this last
+    6. If we have an infinite loop, tell the user.
+
+Python parsing notes:
+
+    This will be a bitch to do.
+    1. Its going to use for {var} in {list} every time. However, we'd need to account for the range input
+    2. range(end, start, skip) 
+
