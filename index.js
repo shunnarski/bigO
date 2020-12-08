@@ -56,11 +56,33 @@ function getForStatements(linesOfCode) {
 }
 
 function checkAlphaNumeric(lexicon) {
-    const alphaRegex = "^[a-ZA-Z]*$"
+    const alphaRegex = "^[a-zA-Z]*$"
     const numericRegex = "^[0-9]*$"
     const alphaNumericRegex = "^[a-zA-Z0-9]*$"
 
-    
+    lexicon = lexicon.trim();
+
+    let mN = lexicon.match(numericRegex)
+    let mAN = lexicon.match(alphaNumericRegex)
+
+    var res;
+    if(mN) {
+        res = "num";
+    }
+    else if(mAN) {
+        if(lexicon[0].match(alphaRegex)) {
+            res = "var";
+        }
+        else {
+            res = "err";
+        }
+    }
+    else {
+        res = "err";
+    }
+
+    return res;
+
 }
 
 function evaluateForStatement(forLine) {
@@ -91,8 +113,9 @@ function evaluateForStatement(forLine) {
     var operationDone;
     for(var i = 0; i < operations.length; i++) {
         let op = operations[i];
+        console.log("Op: " + op);
         if(operation.indexOf(op) > -1) {
-            if(op == "=") {
+            if(op === "=") {
                 // a little more complex
                 // ensure right side format is => variable op val
 
@@ -100,15 +123,47 @@ function evaluateForStatement(forLine) {
                 
             }
             else {
-                if(op == "++" || op == "--") {
-                    operationDone = "lin";
+                if(op === "++" || op === "--") {
+                    let lex = operation.split(op)[0];
+                    let typeCheck = checkAlphaNumeric(lex)
+  
+                    if(typeCheck === "var") {
+                        operationDone = "lin";
+                    }
+                    else {
+                        operationDone = "err";
+                    }   
                 }
-                if (op == "+=" || op == "-=") {
+                if (op === "+=" || op === "-=") {
                     // ensure right side is numeric and > 0
-                    operationDone = "lin"
+                    let operationSplit = operation.split(op);
+                    let leftLex = operationSplit[0];
+                    let rightLex = operationSplit[1];
+                    
+                    let leftTypeCheck = checkAlphaNumeric(leftLex);
+                    let rightTypeCheck = checkAlphaNumeric(rightLex);
+
+                    if(leftTypeCheck === "var") {
+                        if(rightTypeCheck === "num") {
+                            rightLex = rightLex.trim();
+                            let rightLexVal = Number(rightLex);
+                            if(rightLexVal > 0) {
+                                operationDone = "lin";
+                            }
+                            else {
+                                operationDone = "err";
+                            }
+                        }
+                        else {
+                            operationDone = "err";
+                        }
+                    }
+                    else {
+                        operationDone = "err";
+                    }
                 }
 
-                if(op == "*=" || op == "/=") {
+                if(op === "*=" || op === "/=") {
                     // ensure right side is numeric and > 1
                     operationDone = "log"
                 }
@@ -118,11 +173,10 @@ function evaluateForStatement(forLine) {
         operationDone = "err";
     }
 
-
-
-
-    // forLineSplit = forLineSplit.split(")");
-    console.log(forLineLogic);
+    return {
+        "eval": operationDone,
+        "level": level
+    }
 
 }
 
@@ -134,7 +188,32 @@ function getBigONotation(forStatements) {
         val_results.push(r);
     })
 
-    return "hello";
+    var bigORes;
+    var bigOResVal;
+    for(var i = 0; i < val_results.length; i++) {
+        let val_result = val_results[i];
+
+        if(val_result['eval'] === "err") {
+            bigORes = "An error has occurred. Make sure the syntax of your " +
+            "code is correct or that it's logic doesn't create a loop.";
+            break;
+        }
+
+        else if(val_result['eval'] === "lin") {
+            bigORes = "O(N)"
+        }
+
+        else if(val_results['eval'] == 'log') {
+            bigORes = "O(logN)"
+        }
+
+        else {
+            bigORes = "Could not calculate."
+        }
+
+    }
+
+    return bigORes;
 
 }
 
@@ -148,6 +227,6 @@ function parseInput(code) {
     let forStatements = getForStatements(newlineSplit);
     let result = getBigONotation(forStatements);
     let forStatement = forStatements[0];
-    console.log(forStatements)
-    return forStatement['line'];
+    console.log(result)
+    return result;
 }
