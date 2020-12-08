@@ -1,6 +1,5 @@
 <head>
-    <style></style>
-    <script src="./index.js"></script>
+    <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
@@ -24,17 +23,18 @@
         <label for="codeInput">Enter code:</label>
     </div>
     <div>
-        <textarea id="codeInput" rows=10 cols="80"></textarea>
-
+        <textarea id="codeInput" rows=10 cols="80" placeholder="write a for loop..."></textarea>
     </div>
 
     <div>
-        <button>Get Big O!</button>
+        <button id="getBigOBtn">Get Big O!</button>
     </div>
 
 
     <div>
         <p>Result:</p>
-        <span id="result"></span>
+        <span id="resultShow"></span>
     </div>
 </body>
+
+<script src="index.js"></script>
