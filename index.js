@@ -11,6 +11,9 @@ var comparisonOperators = [">", "<", ">=", "<=", "==", "!="]
 var operations = ["+=", "-=", "/=", "*=", "++", "--", "="]
 var arithOperations = ["+", "-", "/", "*"]
 
+
+
+
 // when button is clicked, gets the text from the text area:
 var getBigOBtn = document.getElementById("getBigOBtn");
 getBigOBtn.onclick = function() {
@@ -23,6 +26,112 @@ getBigOBtn.onclick = function() {
     // set the result
     var resultShow = document.getElementById("resultShow");
     resultShow.innerHTML = result;
+}
+
+/* 
+    Sort the Big O strings based on below criteria:
+        1. The number of N's in the string
+        2. The number of logN's in the string
+*/
+
+function getBiggestBigOString(bigOStrings) {
+
+    var numberNsList = [];
+    var maxNs = 0;
+    for(var i = 0; i < bigOStrings.length; i++) {
+        var bigOStr = bigOStrings[i];
+        var numberNs = 0;
+        for(var k = 0; k < bigOStr.length; k++) {
+            var c = bigOStr[k];
+            if (c == 'N') {
+                numberNs++;
+            }
+        }
+
+        if(numberNs > maxNs) {
+            maxNs = numberNs;
+        }
+
+        numberNsList.push(numberNs);
+    }
+
+
+    topBigNStrings = [];
+    for(var i = 0; i < numberNsList.length; i++) {
+        if(numberNsList[i] == maxNs) {
+            topBigNStrings.push(bigOStrings[i]);
+        }
+    }
+
+
+    // if there is only one top N string, stop there
+    if(topBigNStrings.length == 1) {
+        return topBigNStrings[0];
+    }
+
+    // if not, check the next criteria of logs
+    var maxLsIndex = 0;
+    var maxLsCount = 0;
+    for(var i = 0; i < topBigNStrings.length; i++) {
+        var str = topBigNStrings[i];
+        var LsCount = 0;
+        for(var k = 0; k < str.length; k++) {
+            var c = str[k];
+            if(c == 'L') {
+                LsCount++;
+            }
+        }
+
+        if(LsCount > maxLsCount) {
+            maxLsCount = LsCount;
+            maxLsIndex = i;
+        }
+    }
+
+    return topBigNStrings[maxLsIndex];
+
+}
+
+function translateBigOStringToBigO(bigOString) {
+    var nCount = 0;
+    var lCount = 0;
+
+    console.log("BigOString " + bigOString);
+
+    for(var i = 0; i < bigOString.length; i++) {
+        var c = bigOString[i];
+        if (c == 'N') {
+            nCount++;
+        }
+        else if(c == 'L') {
+            lCount++;
+        }
+    }
+
+    res = "";
+    if(nCount > 0) {
+        if(nCount > 1) {
+            res += "N^" + nCount;
+        }
+        else {
+            res += "N";
+        }
+    }
+
+    if(lCount > 0) {
+        if(lCount > 1) {
+            res += "log^" + lCount + "(N)";
+        }
+        else {
+            res += "log(N)";
+        }
+    }
+
+    if(nCount == 0 && lCount == 0) {
+        res += "1";
+    }
+
+    return "O(" + res + ")";
 }
 
 
@@ -113,13 +222,13 @@ function evaluateForStatement(forLine) {
     var operationDone;
     for(var i = 0; i < operations.length; i++) {
         let op = operations[i];
-        console.log("Op: " + op);
         if(operation.indexOf(op) > -1) {
             if(op === "=") {
                 // a little more complex
                 // ensure right side format is => variable op val
 
-
+                // this is just a use case that is wayyy too variable.
+                operationDone = "lazy"
                 
             }
             else {
@@ -165,7 +274,32 @@ function evaluateForStatement(forLine) {
 
                 if(op === "*=" || op === "/=") {
                     // ensure right side is numeric and > 1
-                    operationDone = "log"
+                    // ensure right side is numeric and > 0
+                    let operationSplit = operation.split(op);
+                    let leftLex = operationSplit[0];
+                    let rightLex = operationSplit[1];
+                    
+                    let leftTypeCheck = checkAlphaNumeric(leftLex);
+                    let rightTypeCheck = checkAlphaNumeric(rightLex);
+
+                    if(leftTypeCheck === "var") {
+                        if(rightTypeCheck === "num") {
+                            rightLex = rightLex.trim();
+                            let rightLexVal = Number(rightLex);
+                            if(rightLexVal > 1) {
+                                operationDone = "log";
+                            }
+                            else {
+                                operationDone = "err";
+                            }
+                        }
+                        else {
+                            operationDone = "err";
+                        }
+                    }
+                    else {
+                        operationDone = "err";
+                    }
                 }
             }
             break;
@@ -189,31 +323,65 @@ function getBigONotation(forStatements) {
     })
 
     var bigORes;
-    var bigOResVal;
+    var bigOString = "";
+    var bigOList = [];
+    var hasError = false;
+    var isLazy = false;
     for(var i = 0; i < val_results.length; i++) {
         let val_result = val_results[i];
+        let eval = val_result['eval'];
+        let level = val_result['level'];
 
-        if(val_result['eval'] === "err") {
-            bigORes = "An error has occurred. Make sure the syntax of your " +
-            "code is correct or that it's logic doesn't create a loop.";
+        if(i != 0 && level == 1) {
+            bigOList.push(bigOString);
+            bigOString = "";
+        }
+
+        if(eval === "err") {
+            hasError = true;
             break;
         }
 
-        else if(val_result['eval'] === "lin") {
-            bigORes = "O(N)"
+        if(eval == "lazy") {
+            isLazy = true;
+            break;
         }
 
-        else if(val_results['eval'] == 'log') {
-            bigORes = "O(logN)"
+        else if(eval === "lin") {
+            bigOString += "N";
+        }
+
+        else if(eval == 'log') {
+            bigOString += "L"
+        }
+        
+        else if(eval == "const") {
+            bigOString += "O"
         }
 
         else {
-            bigORes = "Could not calculate."
+            hasError = true;
         }
 
     }
 
-    return bigORes;
+    bigOList.push(bigOString);
+
+    if(hasError) {
+        return "An error has occurred. Make sure the syntax of your " +
+            "code is correct or that it's logic doesn't create an infinite loop.";    
+    }
+
+    if(isLazy) {
+        return "Congrats, you found a use case that I was really too lazy to implement. " +
+        "It's not that it's IMPOSSIBLE to do, but there are so many insane edge cases to this " +
+        "that I decided it wasn't worth the hassle. Please, for the love of God, use a simpler for or while loop."
+    }
+
+    bigORes = getBiggestBigOString(bigOList);
+    var finalResult = translateBigOStringToBigO(bigORes);
+
+    return finalResult;
 
 }
 
@@ -227,6 +395,7 @@ function parseInput(code) {
     let forStatements = getForStatements(newlineSplit);
     let result = getBigONotation(forStatements);
     let forStatement = forStatements[0];
-    console.log(result)
     return result;
 }
+
+
